@@ -1,0 +1,1 @@
+#### Mobile Pack for AngularJS based apps
