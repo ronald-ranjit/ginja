@@ -7,3 +7,5 @@
 3. Add description here
 	
 4. List and add highlights about each of the sample apps here
+
+4. Add License here
