@@ -1,10 +1,9 @@
 #### Mobile Pack for AngularJS based apps
 
-<add some images or icons here>
+1. Add some images or icons here
 
-<Keep all the images in yourRepo/images folder>
+2. Keep all the images in yourRepo/images folder
 
-<Add description here>
+3. Add description here
 	
-
-<List and add highlights about each of the sample apps here>
+4. List and add highlights about each of the sample apps here
