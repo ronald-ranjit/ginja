@@ -39,8 +39,8 @@ if(file_exists('../local.settings.php'))
 
 		app.constant('SFConfig', {'sfLoginURL': 'https://login.salesforce.com/',
 		    'consumerKey': '<?= $_ENV['client_id'] ?>',
-		    'oAuthCallbackURL': '<?= $_ENV['redirect_uri'] ?>',
-		    'proxyUrl': '<?= $_ENV['proxy_url'] ?>'
+		    'oAuthCallbackURL': '<?= $_ENV['app_url'] ?>/#/callback',
+		    'proxyUrl': '<?= $_ENV['app_url'] ?>/proxy.php'
 			});    	
 
     </script>
