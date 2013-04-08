@@ -6,6 +6,7 @@
  * 1. AngularForce - Helps with authentication with Salesforce
  * 2. AngularForceObjectFactory - Creates & returns different kind of AngularForceObject class based on the params.
  *
+ * @author Raja Rao DV @rajaraodv
  */
 
 
@@ -19,7 +20,9 @@ angular.module('AngularForce', []).
     service('AngularForce', function (SFConfig) {
 
         this.authenticated = function () {
-          return SFConfig.client ? true : false;
+            var ret = SFConfig.client ? true : false;
+            //console.log('authenticated? ' + ret);
+            return ret;
         };
 
         this.login = function (callback) {
@@ -29,9 +32,9 @@ angular.module('AngularForce', []).
 
             if (location.protocol === 'file:' && cordova) { //Cordova / PhoneGap
                 return this.setCordovaLoginCred(callback);
-            } else if (typeof getSFSessionId === 'function') { //visualforce
-                //??
-                return null;
+            } else if (typeof getSessionId === 'function') { //visualforce
+                //(Have a global func. called getSessionId tht sets sessionId from VF to SFConfig.sessionId)
+                return this.loginVF();
             } else { //standalone / heroku / localhost
                 return this.loginWeb(callback);
             }
@@ -75,25 +78,45 @@ angular.module('AngularForce', []).
          * @param callback A callback function (usually in the same controller that initiated login)
          */
         this.loginWeb = function (callback) {
+
             if (!SFConfig) throw 'Must set app.SFConfig where app is your AngularJS app';
 
             if (SFConfig.client) { //already loggedin
                 return callback();
             }
-            var ftkClientUI = getForceTKClientUI();
+            var ftkClientUI = getForceTKClientUI(callback);
             ftkClientUI.login();
         };
+
+        /**
+         * Login to VF. Technically, you are already logged in when running the app, but we need this function
+         * to set sessionId to SFConfig.client (forcetkClient)
+         *
+         * Usage: Import AngularForce and call AngularForce.login() while running in VF page.
+         *
+         * @param callback A callback function (usually in the same controller that initiated login)
+         */
+        this.loginVF = function () {
+            SFConfig.client = new forcetk.Client();
+            SFConfig.client.setSessionToken(SFConfig.sessionId);
+        };
+
 
         this.oauthCallback = function (callbackString) {
             var ftkClientUI = getForceTKClientUI();
             ftkClientUI.oauthCallback(callbackString);
         };
 
-        this.logout = function (callbackString) {
+        this.logout = function (callback) {
             if (SFConfig.client) {
                 var ftkClientUI = getForceTKClientUI();
                 ftkClientUI.client = SFConfig.client;
-                ftkClientUI.logout(callbackString);
+                ftkClientUI.instanceUrl = SFConfig.client.instanceUrl;
+                ftkClientUI.proxyUrl = SFConfig.client.proxyUrl;
+                ftkClientUI.logout(callback);
+
+                //set SFConfig.client to null
+                SFConfig.client = null;
             }
         };
 
@@ -103,14 +126,14 @@ angular.module('AngularForce', []).
          *
          * @returns {forcetk.ClientUI}
          */
-        function getForceTKClientUI() {
+        function getForceTKClientUI(oauthSuccessCallback) {
             return new forcetk.ClientUI(SFConfig.sfLoginURL, SFConfig.consumerKey, SFConfig.oAuthCallbackURL,
                 function forceOAuthUI_successHandler(forcetkClient) {
-                    console.log('OAuth callback success!');
                     SFConfig.client = forcetkClient;
                     SFConfig.client.serviceURL = forcetkClient.instanceUrl
                         + '/services/data/'
                         + forcetkClient.apiVersion;
+                    return oauthSuccessCallback && oauthSuccessCallback();
                 },
                 function forceOAuthUI_errorHandler() {
                 },
@@ -200,6 +223,13 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
             var data = AngularForceObject.getNewObjectData(obj);
             return SFConfig.client.create(type, data, function (data) {
                 if (data && !angular.isArray(data)) {
+                    //Salesforce returns "id" in lowercase when an object is
+                    //created. Where as it returns id as "Id" for every other call.
+                    // This might confuse people, so change "id" to "Id".
+                    if(data.id) {
+                        data.Id =  data.id;
+                        delete data.id;
+                    }
                     return successCB(new AngularForceObject(data))
                 }
                 return successCB(data);

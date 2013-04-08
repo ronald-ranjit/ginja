@@ -18,6 +18,30 @@ if(file_exists('../local.settings.php'))
         }
     </style>
     <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('AngularSFDemo', ['AngularForce', 'AngularForceObjectFactory', 'Contact']);
+
+        <?
+            $appUrl = $_ENV['app_url'];
+            if (substr($appUrl,-1) === '/') {
+                $appUrl = substr($appUrl, 0, -1);
+            }
+        ?>
+
+        app.constant('SFConfig', {'sfLoginURL': 'https://login.salesforce.com/',
+            'consumerKey': '<?= $_ENV['client_id'] ?>',
+            'oAuthCallbackURL': '<?= $appUrl ?>/#/callback',
+            'proxyUrl': '<?= $appUrl ?>/proxy.php?mode=native'
+            });  
+
+    </script>
+<script src="js/app.js"></script>
+<script src="js/angular-force.js"></script>
+
+<script src="js/forcetk.js"></script>
+<script src="js/forcetk.ui.js"></script>
 </head>
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top">
@@ -32,23 +56,7 @@ if(file_exists('../local.settings.php'))
 </div>
 
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
-    <script type="text/javascript">
-		var app = angular.module('AngularSFDemo', ['AngularForce', 'AngularForceObjectFactory', 'Contact']);
 
-		app.constant('SFConfig', {'sfLoginURL': 'https://login.salesforce.com/',
-		    'consumerKey': '<?= $_ENV['client_id'] ?>',
-		    'oAuthCallbackURL': '<?= $_ENV['app_url'] ?>/#/callback',
-		    'proxyUrl': '<?= $_ENV['app_url'] ?>/proxy.php'
-			});    	
-
-    </script>
-<script src="js/app.js"></script>
-<script src="js/angular-force.js"></script>
-
-<script src="js/forcetk.js"></script>
-<script src="js/forcetk.ui.js"></script>
 
 </body>
 </html>

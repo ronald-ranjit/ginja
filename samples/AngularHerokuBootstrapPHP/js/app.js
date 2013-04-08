@@ -1,3 +1,4 @@
+
 /**
  * Configure all the AngularJS routes here.
  */
@@ -13,6 +14,8 @@ app.config(function ($routeProvider) {
         otherwise({redirectTo: '/'});
 });
 
+
+
 /**
  * Describe Salesforce object to be used in the app. For example: Below AngularJS factory shows how to describe and
  * create an 'Contact' object. And then set its type, fields, where-clause etc.
@@ -24,7 +27,7 @@ angular.module('Contact', []).factory('Contact', function (AngularForceObjectFac
     return Contact;
 });
 
-function HomeCtrl($scope, AngularForce, $location) {
+function HomeCtrl($scope, AngularForce, $location, $route) {
     $scope.authenticated = AngularForce.authenticated();
     if (!$scope.authenticated) {
         return $location.path('/login');
@@ -36,9 +39,18 @@ function HomeCtrl($scope, AngularForce, $location) {
     }
 }
 
-function LoginCtrl($scope, AngularForce) {
+function LoginCtrl($scope, AngularForce, $location) {
+    $scope.authenticated = AngularForce.authenticated();
+    if ($scope.authenticated) {
+        $location.path('/');
+    }
     $scope.login = function () {
-        AngularForce.login();
+        AngularForce.login(function() {
+            $scope.$apply(function () {
+                $location.path('/contacts');
+            });
+            
+        });
     }
 }
 
@@ -54,30 +66,26 @@ function ContactListCtrl($scope, AngularForce, $location, Contact) {
     }
 
     $scope.searchTerm = '';
-    $scope.working = false;
-
+   
     Contact.query(function (data) {
-        $scope.contacts = data.records;
-        $scope.$apply();//Required coz sfdc uses jquery.ajax
-    }, function (data) {
-        alert('Query Error');
-    }, 'Select Id, FirstName, LastName, Title, Email, Phone, Account.Name From Contact Order By LastName Limit 20 ');
+            $scope.contacts = data.records;
+            $scope.$apply();//Required coz sfdc uses jquery.ajax
+        }, function (data) {
+            alert('Query Error');
+        }, 'Select Id, FirstName, LastName, Title, Email, Phone, Account.Name From Contact Order By LastName Limit 20 ');
 
-    $scope.isWorking = function () {
-        return $scope.working;
-    }
     $scope.doSearch = function (searchTerm) {
         Contact.search(function (data) {
             $scope.contacts = data;
             $scope.$apply();//Required coz sfdc uses jquery.ajax
         }, function (data) {
         }, 'Find {' + escape($scope.searchTerm) + '*} IN ALL FIELDS RETURNING CONTACT (Id, FirstName, LastName, Title, Email, Phone, Account.Name)');
-    }
+
+    };
 
     $scope.doView = function (contactId) {
-        console.log('doView');
         $location.path('/view/' + contactId);
-    }
+    };
 
     $scope.doCreate = function () {
         $location.path('/new');
@@ -87,24 +95,26 @@ function ContactListCtrl($scope, AngularForce, $location, Contact) {
 function ContactCreateCtrl($scope, $location, Contact) {
     $scope.save = function () {
         Contact.save($scope.contact, function (contact) {
-            var p = contact;
+            var c = contact;
             $scope.$apply(function () {
-                $location.path('/view/' + p.id);
+                $location.path('/view/' + c.Id);
             });
         });
     }
-
-
 }
 
 function ContactViewCtrl($scope, AngularForce, $location, $routeParams, Contact) {
 
-    AngularForce.login(function () {
-        Contact.get({id: $routeParams.contactId}, function (contact) {
-            self.original = contact;
-            $scope.contact = new Contact(self.original);
-            $scope.$apply();//Required coz sfdc uses jquery.ajax
-        });
+    $scope.authenticated = AngularForce.authenticated();
+    if (!$scope.authenticated) {
+        return $location.path('/login');
+    }
+
+    Contact.get({id: $routeParams.contactId}, function (contact) {
+        
+        self.original = contact;
+        $scope.contact = new Contact(self.original);
+        $scope.$apply();//Required coz sfdc uses jquery.ajax
     });
 
 }
@@ -140,7 +150,7 @@ function ContactDetailCtrl($scope, AngularForce, $location, $routeParams, Contac
                 console.log('delete error');
             }
         );
-    }
+    };
 
     $scope.save = function () {
         if ($scope.contact.Id) {
@@ -152,17 +162,17 @@ function ContactDetailCtrl($scope, AngularForce, $location, $routeParams, Contac
             });
         } else {
             Contact.save($scope.contact, function (contact) {
-                var p = contact;
+                var c = contact;
                 $scope.$apply(function () {
-                    $location.path('/view/' + p.id);
+                    $location.path('/view/' + c.Id || c.id);
                 });
             });
         }
     };
 
     $scope.doCancel = function () {
-        if ($scope.contact.id) {
-            $location.path('/view/' + $scope.contact.id);
+        if ($scope.contact.Id) {
+            $location.path('/view/' + $scope.contact.Id);
         } else {
             $location.path('/contacts');
         }

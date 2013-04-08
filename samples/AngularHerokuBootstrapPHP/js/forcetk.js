@@ -175,7 +175,7 @@ if (forcetk.Client === undefined) {
                     xhr.setRequestHeader('SalesforceProxy-Endpoint', url);
                 }
                 xhr.setRequestHeader(that.authzHeader, "OAuth " + that.sessionId);
-                xhr.setRequestHeader('X-User-Agent', 'salesforce-toolkit-rest-javascript-angularjs-php/' + that.apiVersion);
+                xhr.setRequestHeader('X-User-Agent', 'salesforce-toolkit-rest-javascript-angularjs-node/' + that.apiVersion);
             }
         });
     }
@@ -202,7 +202,7 @@ if (forcetk.Client === undefined) {
         request.responseType = "arraybuffer";
         
         request.setRequestHeader(that.authzHeader, "OAuth " + that.sessionId);
-        request.setRequestHeader('X-User-Agent', 'salesforce-toolkit-rest-javascript-angularjs-php/' + that.apiVersion);
+        request.setRequestHeader('X-User-Agent', 'salesforce-toolkit-rest-javascript-angularjs/' + that.apiVersion);
         if (this.proxyUrl !== null) {
             request.setRequestHeader('SalesforceProxy-Endpoint', url);
         }
