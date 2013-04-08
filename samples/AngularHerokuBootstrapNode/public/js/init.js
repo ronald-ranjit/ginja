@@ -2,8 +2,6 @@
  * This initializes AngularJS app. Place this file BEFORE app.js (where your actual app is located).
  */
 var app = angular.module('AngularSFDemo', ['AngularForce', 'AngularForceObjectFactory', 'Contact']);
-
-
 app.constant('SFConfig', getSFConfig());
 
 /**
@@ -20,7 +18,6 @@ app.config(function ($routeProvider) {
         when('/new', {controller: ContactDetailCtrl, templateUrl: 'partials/contact/edit.html'}).
         otherwise({redirectTo: '/'});
 });
-
 
 /**
  * Please configure Salesforce consumerkey, proxyUrl etc in getSFConfig().
@@ -45,10 +42,15 @@ app.config(function ($routeProvider) {
 function getSFConfig() {
     var location = document.location;
     var href = location.href;
-    if (href.indexOf('file:') >= 0) { //Phonegap or visualforce
+    if (href.indexOf('file:') >= 0) { //Phonegap
         return {};
+    } else if (configFromEnv && configFromEnv.sessionId) { //VisualForce just sets sessionId (as that's all what is required)
+        return {
+            sessionId: configFromEnv.sessionId
+        }
     } else {
-        if (configFromEnv.client_id == "" || configFromEnv.app_url == "") {
+        if (!configFromEnv || configFromEnv.client_id == "" || configFromEnv.client_id == "undefined"
+            || configFromEnv.app_url == "" || configFromEnv.app_url == "undefined") {
             throw 'Environment variable client_id and/or app_url is missing. Please set them before you start the app';
         }
         return {
