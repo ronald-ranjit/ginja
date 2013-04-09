@@ -3,4 +3,6 @@ This sample application uses the ForceTK, angular_force and Visualforce. Angular
 
 
 <h2>Installation</h2>
-The application can also be stalled via unmanaged package: https://login.salesforce.com/packaging/installPackage.apexp?p0=04td00000002POa
+The application can be stalled via [unmanaged package](https://login.salesforce.com/packaging/installPackage.apexp?p0=04td00000002POa). You must have a Developer Edition to install the package. After clicking on the link, you will see this screen:
+
+![screen shot](images/loginScreen.png)
