@@ -1,5 +1,6 @@
+<h1>ForceTK + Angular + Bootstrap + Visualforce</h1>
+This sample application uses the ForceTK, angular_force and Visualforce. Angular_force act as a linkage between ForceTk, the javascript library for accessing the Force.com database, and Angular.js.
 
 
-1. This should be as close to quick start as possible -- basically copy paste.
-
-2. Images - Keep any images in this readme in repo/images folder and point to them from here.
+<h2>Installation</h2>
+The application can also be stalled via unmanaged package: https://login.salesforce.com/packaging/installPackage.apexp?p0=04td00000002POa
