@@ -122,6 +122,8 @@ function ContactViewCtrl($scope, AngularForce, $location, $routeParams, Contact)
 function ContactDetailCtrl($scope, AngularForce, $location, $routeParams, Contact) {
     var self = this;
 
+    $scope.destroyError = null;
+
     if ($routeParams.contactId) {
         AngularForce.login(function () {
             Contact.get({id: $routeParams.contactId}, function (contact) {
@@ -143,11 +145,17 @@ function ContactDetailCtrl($scope, AngularForce, $location, $routeParams, Contac
         self.original.destroy(
             function () {
                 $scope.$apply(function () {
+                    $scope.destroyError = null;
                     $location.path('/contacts');
                 });
             },
-            function () {
+            function (data) {
+                if (data.responseText) {
+                    var res = angular.fromJson(data.responseText);
+                }
+                $scope.$apply(function() { $scope.destroyError = res[0].message });
                 console.log('delete error');
+
             }
         );
     };

@@ -192,8 +192,8 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
             return AngularForceObject.update(this, cb);
         };
 
-        AngularForceObject.prototype.destroy = function (cb) {
-            return AngularForceObject.remove(this, cb);
+        AngularForceObject.prototype.destroy = function (successCallback, failureCallback) {
+            return AngularForceObject.remove(this, successCallback, failureCallback);
         };
 
         /*RSC Modified to accept optional SOQL*/
