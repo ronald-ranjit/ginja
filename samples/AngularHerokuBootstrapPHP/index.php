@@ -23,6 +23,10 @@ if(file_exists('../local.settings.php'))
     <script type="text/javascript">
         var app = angular.module('AngularSFDemo', ['AngularForce', 'AngularForceObjectFactory', 'Contact']);
 
+        app.config(function($compileProvider){
+            $compileProvider.urlSanitizationWhitelist(/^\s*(https?|ftp|mailto|file|tel):/);
+        });
+
         <?
             $appUrl = $_ENV['app_url'];
             if (substr($appUrl,-1) === '/') {
