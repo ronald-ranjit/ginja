@@ -19,11 +19,16 @@
 angular.module('AngularForce', []).
     service('AngularForce', function (SFConfig) {
 
+        var self = this;
+
         this.inVisualforce = document.location.href.indexOf('visual.force.com') > 0;
+
+        this.refreshToken = localStorage.getItem('ftkui_refresh_token');
 
         this.authenticated = function () {
             return SFConfig.client ? true : false;
         };
+
 
         this.login = function (callback) {
             if (SFConfig.client) { //already logged in
@@ -63,7 +68,11 @@ angular.module('AngularForce', []).
                 SFConfig.client = new forcetk.Client(credsData.clientId, credsData.loginUrl);
                 SFConfig.client.setSessionToken(credsData.accessToken, apiVersion, credsData.instanceUrl);
                 SFConfig.client.setRefreshToken(credsData.refreshToken);
-                callback();
+
+                //Set sessionID to angularForce coz profileImages need them
+                self.sessionId = SFConfig.client.sessionId;
+
+                callback && callback();
             }
 
             function getAuthCredentialsError(error) {
@@ -82,8 +91,8 @@ angular.module('AngularForce', []).
             if (SFConfig.client) { //already loggedin
                 return callback && callback();
             }
-            var ftkClientUI = getForceTKClientUI();
-            ftkClientUI.login(callback);
+            var ftkClientUI = getForceTKClientUI(callback);
+            ftkClientUI.login();
         };
 
         /**
@@ -124,7 +133,7 @@ angular.module('AngularForce', []).
          *
          * @returns {forcetk.ClientUI}
          */
-        function getForceTKClientUI() {
+        function getForceTKClientUI(callback) {
             return new forcetk.ClientUI(SFConfig.sfLoginURL, SFConfig.consumerKey, SFConfig.oAuthCallbackURL,
                 function forceOAuthUI_successHandler(forcetkClient) {
                     console.log('OAuth callback success!');
@@ -132,8 +141,16 @@ angular.module('AngularForce', []).
                     SFConfig.client.serviceURL = forcetkClient.instanceUrl
                         + '/services/data/'
                         + forcetkClient.apiVersion;
+
+                    //Set sessionID to angularForce coz profileImages need them
+                    self.sessionId = SFConfig.client.sessionId;
+
+                    //If callback is passed, call it.
+                    callback && callback();
                 },
                 function forceOAuthUI_errorHandler() {
+                    //If callback is passed, call it.
+                    callback && callback();
                 },
                 SFConfig.proxyUrl);
         }
@@ -161,10 +178,11 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
         var where = params.where;
         var limit = params.limit;
         var orderBy = params.orderBy;
+        var soslFields = params.soslFields || 'ALL FIELDS';
         var fieldsArray = angular.isArray(params.fields) ? params.fields : [];
 
         //Make it soql compliant
-        fields = fields && fields.length > 0 ? fields.join(',') : '';
+        fields = fields && fields.length > 0 ? fields.join(', ') : '';
         where = where && where != '' ? ' where ' + where : '';
         limit = limit && limit != '' ? ' LIMIT ' + limit : 'LIMIT 25';
         orderBy = orderBy && orderBy != '' ? ' ORDER BY ' + orderBy : '';
@@ -174,7 +192,7 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
 
         //Construct SOSL
         // Note: "__SEARCH_TERM_PLACEHOLDER__" will be replaced by actual search query just before making that query
-        var sosl = 'Find {__SEARCH_TERM_PLACEHOLDER__*} IN ALL FIELDS RETURNING ' + type + ' (' + fields + ')';
+        var sosl = 'Find {__SEARCH_TERM_PLACEHOLDER__*} IN ' + soslFields + ' RETURNING ' + type + ' (' + fields + ')';
 
         /**
          * AngularForceObject acts like a super-class for actual SF Objects. It provides wrapper to forcetk ajax apis
@@ -206,7 +224,16 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
             return AngularForceObject.remove(this, successCB, failureCB);
         };
 
+
+        AngularForceObject.prototype.setWhere = function (whereClause) {
+            where = whereClause;
+        };
+
         AngularForceObject.query = function (successCB, failureCB) {
+            return SFConfig.client.query(soql, successCB, failureCB);
+        };
+
+        AngularForceObject.queryWithCustomSOQL = function (soql, successCB, failureCB) {
             return SFConfig.client.query(soql, successCB, failureCB);
         };
 
@@ -214,7 +241,7 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
         AngularForceObject.search = function (searchTerm, successCB, failureCB) {
 
             //Replace __SEARCH_TERM_PLACEHOLDER__ from SOSL with actual search term.
-            var s = sosl.replace('__SEARCH_TERM_PLACEHOLDER__', escape(searchTerm));
+            var s = sosl.replace('__SEARCH_TERM_PLACEHOLDER__', searchTerm);
             return SFConfig.client.search(s, successCB, failureCB);
         };
 
