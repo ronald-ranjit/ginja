@@ -19,37 +19,55 @@ angular.module('Contact', []).factory('Contact', function (AngularForceObjectFac
 });
 
 function HomeCtrl($scope, AngularForce, $location, $route) {
-    $scope.authenticated = AngularForce.authenticated();
-    if (!$scope.authenticated) {
-        return $location.path('/login');
-    }
-
-    $scope.logout = function () {
-        AngularForce.logout();
+    //If in visualforce, directly login
+    if (AngularForce.inVisualforce) {
+        $location.path('/login');
+    } else if (AngularForce.refreshToken) { //If web, try to relogin using refresh-token
+        AngularForce.login(function () {
+            $location.path('/contacts/');
+            $scope.$apply();//Required coz sfdc uses jquery.ajax
+        });
+    } else {
         $location.path('/login');
     }
 }
 
-function LoginCtrl($scope, AngularForce) {
+function LoginCtrl($scope, AngularForce, $location) {
     $scope.login = function () {
         AngularForce.login();
     };
 
     //If in visualforce, directly login
-    if(AngularForce.inVisualforce) {
+    if (AngularForce.inVisualforce) {
         AngularForce.login();
     }
+
+    $scope.isLoggedIn = function () {
+        return AngularForce.authenticated();
+    };
+
+    $scope.logout = function () {
+        AngularForce.logout(function () {
+            //Now go to logout page
+            $location.path('/logout');
+            $scope.$apply();
+        });
+    };
 }
 
 function CallbackCtrl($scope, AngularForce, $location) {
     AngularForce.oauthCallback(document.location.href);
+
+    //Note: Set hash to empty before setting path to /contacts to keep the url clean w/o oauth info.
+    //..coz oauth CB returns access_token in its own hash making it two hashes (1 from angular,
+    // and another from oauth)
+    $location.hash('');
     $location.path('/contacts');
 }
 
 function ContactListCtrl($scope, AngularForce, $location, Contact) {
-    $scope.authenticated = AngularForce.authenticated();
-    if (!$scope.authenticated) {
-        return $location.path('/login');
+    if (!AngularForce.authenticated()) {
+        return $location.path('/home');
     }
 
     $scope.searchTerm = '';
@@ -112,7 +130,7 @@ function ContactDetailCtrl($scope, AngularForce, $location, $routeParams, Contac
 
     if ($routeParams.contactId) {
         AngularForce.login(function () {
-            Contact.get({id: $routeParams.contactId}, 
+            Contact.get({id: $routeParams.contactId},
                 function (contact) {
                     self.original = contact;
                     $scope.contact = new Contact(self.original);
@@ -135,7 +153,7 @@ function ContactDetailCtrl($scope, AngularForce, $location, $routeParams, Contac
                     $location.path('/contacts');
                 });
             },
-            function(errors) {
+            function (errors) {
                 alert("Could not delete contact!\n" + JSON.parse(errors.responseText)[0].message);
             }
         );
