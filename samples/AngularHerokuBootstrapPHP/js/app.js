@@ -103,23 +103,31 @@ app.controller('ContactListCtrl', ['$scope', 'AngularForce', '$location', 'Conta
             return $location.path('/login');
         }
 
-        $scope.searchTerm = '';
-       
-        Contact.query(function (data) {
-                $scope.contacts = data.records;
-                $scope.$apply();//Required coz sfdc uses jquery.ajax
-            }, function (data) {
-                alert('Query Error');
-            }, 'Select Id, FirstName, LastName, Title, Email, Phone, Account.Name From Contact Order By LastName Limit 20 ');
-
         $scope.doSearch = function (searchTerm) {
-            Contact.search(function (data) {
-                $scope.contacts = data;
-                $scope.$apply();//Required coz sfdc uses jquery.ajax
-            }, function (data) {
-            }, 'Find {' + escape($scope.searchTerm) + '*} IN ALL FIELDS RETURNING CONTACT (Id, FirstName, LastName, Title, Email, Phone, Account.Name)');
+            $scope.contacts = [];
+            Contact.searchCustom(
+                'Find {' + escape($scope.searchTerm) + '*} IN ALL FIELDS RETURNING CONTACT (Id, FirstName, LastName, Title, Email, Phone, Account.Name)',
+                function (data) {
+                    $scope.contacts = data;
+                    $scope.$apply();//Required coz sfdc uses jquery.ajax
+                }, 
+                function (data) {
+                    console.log(data);
+                    alert("Search Error");
+                }
+            );
 
         };
+
+        $scope.doList = function() {
+            $scope.searchTerm = '';
+            Contact.query(function (data) {
+                    $scope.contacts = data.records;
+                    $scope.$apply();//Required coz sfdc uses jquery.ajax
+                }, function (data) {
+                    alert('Query Error');
+                }, 'Select Id, FirstName, LastName, Title, Email, Phone, Account.Name From Contact Order By LastName Limit 20 ');            
+        }
 
         $scope.doView = function (contactId) {
             $location.path('/view/' + contactId);
@@ -127,7 +135,10 @@ app.controller('ContactListCtrl', ['$scope', 'AngularForce', '$location', 'Conta
 
         $scope.doCreate = function () {
             $location.path('/new');
-        }
+        };
+
+        $scope.searchTerm = '';
+        $scope.doList();        
     }
 ]);
 
@@ -232,7 +243,11 @@ app.controller('AccountListCtrl', ['$scope', 'AngularForce', '$location', 'Accou
             }, function (data) {
                 console.log(data);
                 alert('Query Error');
-            }, 'Select Id, Name, BillingCity From Account Order By Name Limit 50');
+            });
+
+        $scope.doView = function() {
+            alert('Account View: implement it first and tweet @ReidCarlberg for a surprise.');
+        }
     }
 ]);
 

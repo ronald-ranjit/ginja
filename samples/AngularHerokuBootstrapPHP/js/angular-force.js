@@ -246,6 +246,9 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
             return SFConfig.client.search(s, successCB, failureCB);
         };
 
+        AngularForceObject.searchCustom = function (sosl, successCB, failureCB) {
+            return SFConfig.client.search(sosl, successCB, failureCB);
+        };        
 
         AngularForceObject.get = function (params, successCB, failureCB) {
             return SFConfig.client.retrieve(type, params.id, fieldsArray, function (data) {
