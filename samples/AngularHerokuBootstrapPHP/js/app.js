@@ -12,6 +12,7 @@ app.config(function ($routeProvider) {
         when('/view/:contactId', {controller: 'ContactViewCtrl', templateUrl: 'partials/contact/view.html'}).
         when('/edit/:contactId', {controller: 'ContactDetailCtrl', templateUrl: 'partials/contact/edit.html'}).
         when('/new', {controller: 'ContactDetailCtrl', templateUrl: 'partials/contact/edit.html'}).
+        when('/accounts', {controller: 'AccountListCtrl', templateUrl: 'partials/account/list.html'}).        
         otherwise({redirectTo: '/'});
 });
 
@@ -32,6 +33,12 @@ angular.module('Contact', []).factory('Contact', function (AngularForceObjectFac
     var Contact = AngularForceObjectFactory({type: 'Contact', fields: ['FirstName', 'LastName', 'Title', 'Phone', 'Email', 'Id'], where: '', limit: 10});
     return Contact;
 });
+
+angular.module('Account', []).factory('Account', function (AngularForceObjectFactory) {
+    var Account = AngularForceObjectFactory({type: 'Account', fields: ['Id', 'Name', 'BillingCity'], where: '', limit: 50});
+    return Account;
+});
+
 
 /** 
 * Contact Related Controllers
@@ -211,4 +218,23 @@ app.controller('ContactDetailCtrl', ['$scope', 'AngularForce', '$location', '$ro
 
     }
 ]);
+
+app.controller('AccountListCtrl', ['$scope', 'AngularForce', '$location', 'Account', 
+    function($scope, AngularForce, $location, Account) {
+        $scope.authenticated = AngularForce.authenticated();
+        if (!$scope.authenticated) {
+            return $location.path('/login');
+        }
+
+        Account.query(function (data) {
+                $scope.accounts = data.records;
+                $scope.$apply();//Required coz sfdc uses jquery.ajax
+            }, function (data) {
+                console.log(data);
+                alert('Query Error');
+            }, 'Select Id, Name, BillingCity From Account Order By Name Limit 50');
+    }
+]);
+
+
 
