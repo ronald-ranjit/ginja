@@ -112,6 +112,7 @@ angular.module('AngularForce', []).
         this.oauthCallback = function (callbackString) {
             var ftkClientUI = getForceTKClientUI();
             ftkClientUI.oauthCallback(callbackString);
+            this.refreshToken = localStorage.getItem('ftkui_refresh_token');
         };
 
         this.logout = function (callback) {
