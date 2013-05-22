@@ -25,6 +25,13 @@ angular.module('AngularForce', []).
 
         this.refreshToken = localStorage.getItem('ftkui_refresh_token');
 
+        this.isOnline = function () {
+            return navigator.onLine ||
+                (typeof navigator.connection != 'undefined' &&
+                    navigator.connection.type !== Connection.UNKNOWN &&
+                    navigator.connection.type !== Connection.NONE);
+        };
+
         this.authenticated = function () {
             return SFConfig.client ? true : false;
         };
@@ -32,6 +39,11 @@ angular.module('AngularForce', []).
 
         this.login = function (callback) {
             if (SFConfig.client) { //already logged in
+                return callback && callback();
+            }
+
+            //if offline..
+            if (!this.isOnline()) {
                 return callback && callback();
             }
 
@@ -134,26 +146,34 @@ angular.module('AngularForce', []).
          * @returns {forcetk.ClientUI}
          */
         function getForceTKClientUI(callback) {
+
+            function forceOAuthUI_successHandler(forcetkClient) {
+                console.log('OAuth callback success!');
+                SFConfig.client = forcetkClient;
+                SFConfig.client.serviceURL = forcetkClient.instanceUrl
+                    + '/services/data/'
+                    + forcetkClient.apiVersion;
+
+                initApp(null, forcetkClient);
+
+                //Set sessionID to angularForce coz profileImages need them
+                self.sessionId = SFConfig.client.sessionId;
+
+                //If callback is passed, call it.
+                callback && callback();
+            }
+
+            function forceOAuthUI_errorHandler() {
+                //If callback is passed, call it.
+                callback && callback();
+            }
+
             return new forcetk.ClientUI(SFConfig.sfLoginURL, SFConfig.consumerKey, SFConfig.oAuthCallbackURL,
-                function forceOAuthUI_successHandler(forcetkClient) {
-                    console.log('OAuth callback success!');
-                    SFConfig.client = forcetkClient;
-                    SFConfig.client.serviceURL = forcetkClient.instanceUrl
-                        + '/services/data/'
-                        + forcetkClient.apiVersion;
-
-                    //Set sessionID to angularForce coz profileImages need them
-                    self.sessionId = SFConfig.client.sessionId;
-
-                    //If callback is passed, call it.
-                    callback && callback();
-                },
-                function forceOAuthUI_errorHandler() {
-                    //If callback is passed, call it.
-                    callback && callback();
-                },
-                SFConfig.proxyUrl);
+                forceOAuthUI_successHandler, forceOAuthUI_errorHandler, SFConfig.proxyUrl);
         }
+
+
+
     });
 
 /**
@@ -170,7 +190,7 @@ angular.module('AngularForce', []).
  * var Opportunity = AngularForceObjectFactory({type: 'Opportunity', fields:
  *          ['Name', 'ExpectedRevenue', 'StageName', 'CloseDate', 'Id'], where: 'WHERE IsWon = TRUE'});
  */
-angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFactory', function (SFConfig) {
+angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFactory', function (SFConfig, AngularForce) {
     function AngularForceObjectFactory(params) {
         params = params || {};
         var type = params.type;
@@ -230,11 +250,38 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
         };
 
         AngularForceObject.query = function (successCB, failureCB) {
-            return SFConfig.client.query(soql, successCB, failureCB);
+            return AngularForceObject.queryWithCustomSOQL(soql, successCB, failureCB);
         };
 
         AngularForceObject.queryWithCustomSOQL = function (soql, successCB, failureCB) {
-            return SFConfig.client.query(soql, successCB, failureCB);
+            // return SFConfig.client.query(soql, successCB, failureCB);
+
+            var self = this;
+            var config = {};
+
+            // fetch list from forcetk and populate SOBject model
+            if (AngularForce.isOnline()) {
+                config.type = 'soql';
+                config.query = soql;
+
+            } else if (navigator.smartstore) {
+                config.type = 'cache';
+                config.cacheQuery = navigator.smartstore.buildExactQuerySpec('attributes.type', type);
+            }
+
+            Force.fetchSObjects(config, SFConfig.dataStore).done(function (resp) {
+                var processFetchResult = function (records) {
+                    //Recursively get records until no more records or maxListSize
+                    if (resp.hasMore() && (SFConfig.maxListSize || 25) > resp.records.length) {
+                        resp.getMore().done(processFetchResult);
+
+                    } else {
+                        return successCB(resp);
+                    }
+                }
+                processFetchResult(resp.records);
+
+            }).fail(failureCB);
         };
 
         /*RSC And who doesn't love SOSL*/
@@ -247,39 +294,57 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
 
 
         AngularForceObject.get = function (params, successCB, failureCB) {
-            return SFConfig.client.retrieve(type, params.id, fieldsArray, function (data) {
-                if (data && !angular.isArray(data)) {
-                    return successCB(new AngularForceObject(data))
-                }
-                return successCB(data);
-            }, failureCB);
+//
+//            return SFConfig.client.retrieve(type, params.id, fieldsArray, function (data) {
+//                if (data && !angular.isArray(data)) {
+//                    return successCB(new AngularForceObject(data))
+//                }
+//                return successCB(data);
+//            }, failureCB);
+            //  var _self = this;
+            // var fieldsToFetch = _.union(_self.get('fields'), fields || []);
+            return Force.syncSObject('read', type, params.id, null, fieldsArray, SFConfig.dataStore, AngularForce.isOnline() ? Force.CACHE_MODE.SERVER_FIRST : Force.CACHE_MODE.CACHE_ONLY)
+                .done(function (data) {
+                    return successCB(new AngularForceObject(data));
+                }).fail(failureCB);
         };
 
         AngularForceObject.save = function (obj, successCB, failureCB) {
             var data = AngularForceObject.getNewObjectData(obj);
-            return SFConfig.client.create(type, data, function (data) {
-                if (data && !angular.isArray(data)) {
-                    //Salesforce returns "id" in lowercase when an object is
-                    //created. Where as it returns id as "Id" for every other call.
-                    // This might confuse people, so change "id" to "Id".
-                    if (data.id) {
-                        data.Id = data.id;
-                        delete data.id;
-                    }
-                    return successCB(new AngularForceObject(data))
-                }
-                return successCB(data);
-            }, failureCB);
+//            return SFConfig.client.create(type, data, function (data) {
+//                if (data && !angular.isArray(data)) {
+//                    //Salesforce returns "id" in lowercase when an object is
+//                    //created. Where as it returns id as "Id" for every other call.
+//                    // This might confuse people, so change "id" to "Id".
+//                    if (data.id) {
+//                        data.Id = data.id;
+//                        delete data.id;
+//                    }
+//                    return successCB(new AngularForceObject(data))
+//                }
+//                return successCB(data);
+//            }, failureCB);
+
+
+            return Force.syncSObject('create', type, null, data, fieldsArray, SFConfig.dataStore, AngularForce.isOnline() ? Force.CACHE_MODE.SERVER_FIRST : Force.CACHE_MODE.CACHE_ONLY)
+                .done(function (data) {
+                    return successCB(new AngularForceObject(data));
+                }).fail(failureCB);
         };
 
         AngularForceObject.update = function (obj, successCB, failureCB) {
-            var data = AngularForceObject.getChangedData(obj);
-            return SFConfig.client.update(type, obj.Id, data, function (data) {
-                if (data && !angular.isArray(data)) {
-                    return successCB(new AngularForceObject(data))
-                }
-                return successCB(data);
-            }, failureCB);
+            var changedData = AngularForceObject.getChangedData(obj);
+//            return SFConfig.client.update(type, obj.Id, data, function (data) {
+//                if (data && !angular.isArray(data)) {
+//                    return successCB(new AngularForceObject(data))
+//                }
+//                return successCB(data);
+//            }, failureCB);
+
+            return Force.syncSObject('update', type, obj.Id, changedData, _.keys(changedData), SFConfig.dataStore, AngularForce.isOnline() ? Force.CACHE_MODE.SERVER_FIRST : Force.CACHE_MODE.CACHE_ONLY)
+                .done(function (data) {
+                    return successCB(new AngularForceObject(data));
+                }).fail(failureCB);
         };
 
         AngularForceObject.remove = function (obj, successCB, failureCB) {
@@ -308,6 +373,7 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
             });
             return newObj;
         };
+
 
         return AngularForceObject;
     }

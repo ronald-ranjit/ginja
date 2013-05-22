@@ -1,8 +1,53 @@
 /**
  * This initializes AngularJS app. Place this file BEFORE app.js (where your actual app is located).
  */
+//var app = angular.module('AngularSFDemo', ['AngularForce', 'AngularForceObjectFactory', 'Contact', 'ui.bootstrap.dropdownToggle']);
+//app.constant('SFConfig', getSFConfig());
+
 var app = angular.module('AngularSFDemo', ['AngularForce', 'AngularForceObjectFactory', 'Contact', 'ui.bootstrap.dropdownToggle']);
-app.constant('SFConfig', getSFConfig());
+var SFConfig = getSFConfig();
+
+SFConfig.maxListSize = 25;
+app.constant('SFConfig', SFConfig);
+
+function initApp(options, forcetkClient) {
+    options = options || {};
+    options.loginUrl = SFConfig.sfLoginURL;
+    options.clientId = SFConfig.consumerKey;
+    options.apiVersion = 'v27.0';
+    options.userAgent = 'SalesforceMobileUI/alpha';
+    options.proxyUrl = options.proxyUrl || SFConfig.proxyUrl;
+
+    //In VF, you should get sessionId and use that as accessToken while initializing forcetk(Force.init)
+    if (SFConfig.sessionId) {
+        options.accessToken = SFConfig.sessionId;
+    }
+
+    //Init force
+    Force.init(options, options.apiVersion, forcetkClient);
+    SFConfig.client = Force.forcetkClient;
+
+
+    //sforce.connection.init(options.accessToken, options.instanceUrl + '/services/Soap/u/' + options.apiVersion, options.useProxy);
+    if (navigator.smartstore) {
+        SFConfig.dataStore = new Force.StoreCache('sobjects', [
+            {path: 'Name', type: 'string'},
+            {path: 'attributes.type', type: 'string'}
+        ], 'Id');
+
+        SFConfig.dataStore.init();
+    }
+}
+
+mockStore.useSessionStorage();
+
+//Uncomment below and set accessToken(= sessionId), instanceUrl and proxyUrl to test smartstore (mock version - coz real smartstore is part of cordova)
+// inside the browser
+//initApp({
+//    accessToken: '00Di0000000JEm3!AQ4AQLnaKs7PPHaRd0xjvJwJkf6O.9R7ECpU5mndDb1DwYsoxhMDrCyEag.5Ws_HFI5fY.9fYgsQ_4F1D5vXltKmK5b7guCK',
+//    instanceUrl: 'https://na15.salesforce.com',
+//    proxyUrl: 'http://localhost:3000/proxy/'
+//});
 
 /**
  * Configure all the AngularJS routes here.
@@ -62,6 +107,7 @@ function getSFConfig() {
         }
     }
 }
+
 
 //Helper
 function removeTrailingSlash(url) {

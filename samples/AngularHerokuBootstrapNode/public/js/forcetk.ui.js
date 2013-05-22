@@ -39,7 +39,7 @@
      * @param callbackURL string Callback URL from Setup | Develop | Remote Access
      * @param successCallback function Function that will be called on successful login, it accepts single argument with forcetk.Client instance
      * @param errorCallback function Function that will be called when login process fails, it accepts single argument with error object
-     *
+     * @param proxyUrl  A Proxy url for Heroku apps like Node.js/PHP apps.
      * @constructor
      */
     forcetk.ClientUI = function (loginURL, consumerKey, callbackURL, successCallback, errorCallback, proxyUrl) {
@@ -60,11 +60,8 @@
             throw new TypeError('errorCallback should of type Function');
         this.errorCallback = errorCallback;
 
-        // Creating forcetk.Client instance
-        /* RSC added proxyUrl for PHP app */
         this.client = new forcetk.Client(consumerKey, loginURL, proxyUrl);
-
-    };
+  };
 
     forcetk.ClientUI.prototype = {
 

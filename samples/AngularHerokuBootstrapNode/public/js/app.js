@@ -19,6 +19,20 @@ angular.module('Contact', []).factory('Contact', function (AngularForceObjectFac
 });
 
 function HomeCtrl($scope, AngularForce, $location, $route) {
+    var isOnline =  AngularForce.isOnline();
+    var isAuthenticated = AngularForce.authenticated();
+
+    //Offline support (only for Cordova)
+    //First check if we are online, then check if we are already authenticated (usually happens in Cordova),
+    //If Both online and authenticated(Cordova), go directly to /contacts view. Else show login page.
+    if(!isOnline) {
+        if(!isAuthenticated) {//MobileWeb
+            return $location.path('/login');
+        } else {//Cordova
+            return $location.path('/contacts/');
+        }
+    }
+
     //If in visualforce, directly login
     if (AngularForce.inVisualforce) {
         $location.path('/login');
@@ -33,6 +47,11 @@ function HomeCtrl($scope, AngularForce, $location, $route) {
 }
 
 function LoginCtrl($scope, AngularForce, $location) {
+    //Usually happens in Cordova
+    if (AngularForce.authenticated()) {
+        return $location.path('/contacts/');
+    }
+
     $scope.login = function () {
         AngularForce.login();
     };
