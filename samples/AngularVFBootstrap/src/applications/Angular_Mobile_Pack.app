@@ -3,5 +3,9 @@
     <defaultLandingTab>standard-home</defaultLandingTab>
     <label>Angular Mobile Pack</label>
     <logo>Package/AngularIcon.png</logo>
+<<<<<<< HEAD
+    <tab>Angular_Demo</tab>
+=======
     <tab>Angular_Contacts</tab>
+>>>>>>> 08558aac93c21fead3bc50c3ac89fb6671981943
 </CustomApplication>
