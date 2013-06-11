@@ -294,15 +294,6 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
 
 
         AngularForceObject.get = function (params, successCB, failureCB) {
-//
-//            return SFConfig.client.retrieve(type, params.id, fieldsArray, function (data) {
-//                if (data && !angular.isArray(data)) {
-//                    return successCB(new AngularForceObject(data))
-//                }
-//                return successCB(data);
-//            }, failureCB);
-            //  var _self = this;
-            // var fieldsToFetch = _.union(_self.get('fields'), fields || []);
             return Force.syncSObject('read', type, params.id, null, fieldsArray, SFConfig.dataStore, AngularForce.isOnline() ? Force.CACHE_MODE.SERVER_FIRST : Force.CACHE_MODE.CACHE_ONLY)
                 .done(function (data) {
                     return successCB(new AngularForceObject(data));
@@ -311,20 +302,6 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
 
         AngularForceObject.save = function (obj, successCB, failureCB) {
             var data = AngularForceObject.getNewObjectData(obj);
-//            return SFConfig.client.create(type, data, function (data) {
-//                if (data && !angular.isArray(data)) {
-//                    //Salesforce returns "id" in lowercase when an object is
-//                    //created. Where as it returns id as "Id" for every other call.
-//                    // This might confuse people, so change "id" to "Id".
-//                    if (data.id) {
-//                        data.Id = data.id;
-//                        delete data.id;
-//                    }
-//                    return successCB(new AngularForceObject(data))
-//                }
-//                return successCB(data);
-//            }, failureCB);
-
 
             return Force.syncSObject('create', type, null, data, fieldsArray, SFConfig.dataStore, AngularForce.isOnline() ? Force.CACHE_MODE.SERVER_FIRST : Force.CACHE_MODE.CACHE_ONLY)
                 .done(function (data) {
@@ -334,13 +311,6 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
 
         AngularForceObject.update = function (obj, successCB, failureCB) {
             var changedData = AngularForceObject.getChangedData(obj);
-//            return SFConfig.client.update(type, obj.Id, data, function (data) {
-//                if (data && !angular.isArray(data)) {
-//                    return successCB(new AngularForceObject(data))
-//                }
-//                return successCB(data);
-//            }, failureCB);
-
             return Force.syncSObject('update', type, obj.Id, changedData, _.keys(changedData), SFConfig.dataStore, AngularForce.isOnline() ? Force.CACHE_MODE.SERVER_FIRST : Force.CACHE_MODE.CACHE_ONLY)
                 .done(function (data) {
                     return successCB(new AngularForceObject(data));
@@ -348,7 +318,10 @@ angular.module('AngularForceObjectFactory', []).factory('AngularForceObjectFacto
         };
 
         AngularForceObject.remove = function (obj, successCB, failureCB) {
-            return SFConfig.client.del(type, obj.Id, successCB, failureCB);
+            return Force.syncSObject('delete', type, obj.Id, null, null, SFConfig.dataStore, AngularForce.isOnline() ? Force.CACHE_MODE.SERVER_FIRST : Force.CACHE_MODE.CACHE_ONLY)
+                .done(function (data) {
+                    return successCB(new AngularForceObject(data));
+                }).fail(failureCB);
         };
 
         /************************************
