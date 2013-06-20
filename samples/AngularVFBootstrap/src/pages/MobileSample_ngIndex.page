@@ -12,20 +12,22 @@
             text-align: center;
         }
     </style>
-	<script type="text/javascript">
-    	//Get configuration from environment variables (via heroku or localhost env)
-    	var configFromEnv = {};
-    	configFromEnv.client_id    = "<%= client_id %>";
-    	configFromEnv.app_url = "<%= app_url %>";
+    <script type="text/javascript">
+        //Get configuration from environment variables (via heroku or localhost env)
+        var configFromEnv = {};
+        configFromEnv.client_id    = "<%= client_id %>";
+        configFromEnv.app_url = "<%= app_url %>";
         configFromEnv.sessionId = "{!$API.session_Id}";
-	</script>
+    </script>
         
-    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet" />
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
 
     <script src="{!URLFOR($Resource.MobileSample_Resources_Angular, 'resources/js/forcetk.js')}"></script>
     <script src="{!URLFOR($Resource.MobileSample_Resources_Angular, 'resources/js/angular-force.js')}"></script>
+    <script src="{!URLFOR($Resource.MobileSample_Resources_Angular, 'resources/js/account.js')}"></script>
+    <script src="{!URLFOR($Resource.MobileSample_Resources_Angular, 'resources/js/contact.js')}"></script>
     <script src="{!URLFOR($Resource.MobileSample_Resources_Angular, 'resources/js/init.js')}"></script>
     <script src="{!URLFOR($Resource.MobileSample_Resources_Angular, 'resources/js/app.js')}"></script>
     
@@ -35,7 +37,10 @@
 <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
         <div class="container">
-            <a class="brand" href="#">Salesforce Contacts</a>
+            <a id="homeButton" class="btn btn-navbar" href="#" style="display: none; float: left;">
+                <span>Home</span>
+            </a>
+            <a id="header" class="brand" href="#">Salesforce Demo</a>
         </div>
     </div>
 </div>

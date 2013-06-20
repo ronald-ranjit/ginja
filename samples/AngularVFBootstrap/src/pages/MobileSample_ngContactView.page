@@ -9,16 +9,16 @@
                         <img width="64" src="{!URLFOR($Resource.MobileSample_Resources_Angular, 'resources/img/profile.png')}" alt="Dave Carroll" data-user-id="7688502" />
                     </td>
                     <td>
-				    	<b style="width: 200px;" class="fullname">{{contact.FirstName}} {{contact.LastName}}</b>
+                        <b style="width: 200px;" class="fullname">{{contact.FirstName}} {{contact.LastName}}</b>
                     </td>
                 </tr>
                 <tr>
                     <td>
-					    <small class="metadata">{{contact.Title}}</small>
+                        <small class="metadata">{{contact.Title}}</small>
                     </td>
                 </tr>
             </table>
-	    </div>
+        </div>
     </div>
     <div class="row">
         <div class="span3 offset1">
@@ -31,7 +31,7 @@
         </div>
     </div>
     <div class="row">
-       	<div class="span3 offset1">
+        <div class="span3 offset1">
             <b class="fullname">Phone</b>
         </div>
     </div>
@@ -42,11 +42,11 @@
     </div>
     <div class="row">
         <div class="span1">
-	        <a class="btn" style="margin-top: 10px;" href="#/edit/{{contact.Id}}">Edit</a>
+            <a class="btn" style="margin-top: 10px;" href="#/edit/{{contact.Id}}">Edit</a>
         </div>
         <div class="span3">
-	        <a class="btn btn-primary" style="margin-top: 10px;" href="#/contacts">Back to Contacts</a>
-	    </div>
+            <a class="btn btn-primary" style="margin-top: 10px;" href="#/contacts">Back to Contacts</a>
+        </div>
     </div>
 </div>
 

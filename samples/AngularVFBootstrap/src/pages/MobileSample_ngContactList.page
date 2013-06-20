@@ -2,6 +2,9 @@
 <div ng-show="isWorking()">
     <p>Working</p>
 </div>
+<script>
+    $("#header").html("Contact Demo");
+</script>
 
 <div ng-show="!isWorking()">
     <!-- This div is only displayed in desktops (see below for mobile phones)-->
