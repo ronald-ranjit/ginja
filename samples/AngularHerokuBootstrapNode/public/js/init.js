@@ -25,7 +25,7 @@ function initApp(options, forcetkClient) {
 
     //Init force
     Force.init(options, options.apiVersion, forcetkClient);
-    SFConfig.client = Force.forcetkClient;
+   // SFConfig.client = Force.forcetkClient;
 
 
     //sforce.connection.init(options.accessToken, options.instanceUrl + '/services/Soap/u/' + options.apiVersion, options.useProxy);
