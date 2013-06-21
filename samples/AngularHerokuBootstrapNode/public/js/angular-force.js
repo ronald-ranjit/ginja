@@ -46,11 +46,10 @@ angular.module('AngularForce', []).
             if (!this.isOnline()) {
                 return callback && callback();
             }
-
             if (location.protocol === 'file:' && cordova) { //Cordova / PhoneGap
                 return this.setCordovaLoginCred(callback);
-            } else if (SFConfig.inVisualforce) { //visualforce
-                return this.loginVF();
+            } else if (this.inVisualforce) { //visualforce
+                return this.loginVF(callback);
             } else { //standalone / heroku / localhost
                 return this.loginWeb(callback);
             }
@@ -115,9 +114,17 @@ angular.module('AngularForce', []).
          *
          * @param callback A callback function (usually in the same controller that initiated login)
          */
-        this.loginVF = function () {
+        this.loginVF = function (callback) {
             SFConfig.client = new forcetk.Client();
             SFConfig.client.setSessionToken(SFConfig.sessionId);
+
+                initApp(null, SFConfig.client); //init entity framework
+
+                //Set sessionID to angularForce coz profileImages need them
+                self.sessionId = SFConfig.client.sessionId;
+
+                //If callback is passed, call it.
+                callback && callback();
         };
 
 

@@ -53,13 +53,17 @@ function LoginCtrl($scope, AngularForce, $location) {
     }
 
     $scope.login = function () {
-        AngularForce.login();
+        //If in visualforce, 'login' = initialize entity framework
+        if (AngularForce.inVisualforce) {
+           AngularForce.login(function() {
+            $location.path('/contacts/');
+           });     
+        } else {
+            AngularForce.login();           
+        }
     };
 
-    //If in visualforce, directly login
-    if (AngularForce.inVisualforce) {
-        AngularForce.login();
-    }
+
 
     $scope.isLoggedIn = function () {
         return AngularForce.authenticated();
