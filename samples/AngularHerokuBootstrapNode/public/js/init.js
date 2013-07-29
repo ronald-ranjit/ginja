@@ -39,7 +39,7 @@ function initApp(options, forcetkClient) {
     }
 }
 
-mockStore.useSessionStorage();
+//mockStore.useSessionStorage();
 
 //Uncomment below and set accessToken(= sessionId), instanceUrl and proxyUrl to test smartstore (mock version - coz real smartstore is part of cordova)
 // inside the browser

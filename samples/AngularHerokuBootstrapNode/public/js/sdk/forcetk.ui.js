@@ -79,7 +79,7 @@
                     function refreshAccessToken_successHandler(sessionToken) {
 
                         if (that.successCallback) {
-                            that.client.setSessionToken(sessionToken.access_token, null, sessionToken.instance_url);
+                            //that.client.setSessionToken(sessionToken.access_token, null, sessionToken.instance_url);
                             that.successCallback.call(that, that.client);
                         }
                         else
