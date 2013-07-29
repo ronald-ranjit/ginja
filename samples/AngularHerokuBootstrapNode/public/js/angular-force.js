@@ -69,6 +69,8 @@ angular.module('AngularForce', []).
 
             //register to receive notifications when autoRefreshOnForeground refreshes the sfdc session
             document.addEventListener("salesforceSessionRefresh", salesforceSessionRefreshed, false);
+
+            
             function salesforceSessionRefreshed(creds) {
                 // Depending on how we come into this method, `creds` may be callback data from the auth
                 // plugin, or an event fired from the plugin.  The data is different between the two.
@@ -87,7 +89,7 @@ angular.module('AngularForce', []).
             }
 
             function getAuthCredentialsError(error) {
-                logToConsole("getAuthCredentialsError: " + error);
+                console.log("getAuthCredentialsError: " + error);
             }
         };
 
