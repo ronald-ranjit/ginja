@@ -21,8 +21,9 @@ angular.module('AngularForce', []).
 
         var self = this;
 
-        this.inVisualforce = document.location.href.indexOf('visual.force.com') > 0;
-
+        var href =  document.location.href;
+        this.inVisualforce = href.indexOf('visual.force.com') > 0 || href.indexOf('salesforce.com/apex/') > 0;
+        
         this.refreshToken = localStorage.getItem('ftkui_refresh_token');
 
         this.isOnline = function () {
